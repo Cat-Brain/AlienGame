@@ -44,6 +44,18 @@
     <ClInclude Include="Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LowLevelEntity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Chunk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="DefaultDiffuseVert.txt">
@@ -52,6 +64,5 @@
     <Text Include="DefaultDiffuseFrag.txt">
       <Filter>Shaders</Filter>
     </Text>
-    <Text Include="DefaultDiffuseFrag2.txt" />
   </ItemGroup>
 </Project>

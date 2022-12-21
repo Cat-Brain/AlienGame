@@ -1,19 +1,30 @@
 #include "Mesh.h"
 
+Inputs inputs;
+bool firstMouse;
+
 class Window
 {
+private:
+	int lastTitleUpdate = 0;
+	int frameCount;
+	bool fullscreened = false;
 public:
 	GLFWwindow* window;
+	glm::mat4 perspective, view;
+	int width = 600, height = 600;
+	vec3 playerPos = vec3(0);
 
 	void Start()
 	{
+		firstMouse = true;
 		glfwInit();
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-		window = glfwCreateWindow(800, 600, "Alien game!", NULL, NULL);
+		window = glfwCreateWindow(width, width, "Alien game!", NULL, NULL);
 		if (window == NULL)
 		{
 			std::cout << "Failed to create GLFW window" << std::endl;
@@ -27,18 +38,48 @@ public:
 			return;
 		}
 
-		glViewport(0, 0, 800, 600);
+		glViewport(0, 0, width, width);
 
+		glEnable(GL_DEPTH_TEST);
+		//glEnable(GL_CULL_FACE);
+		//glCullFace(GL_FRONT);
+
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		glfwSetCursorPosCallback(window, mouse_callback);
 		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+		perspective = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.01f, 100.0f);
+		view = glm::translate(glm::mat4(1), -playerPos);
 	}
 
-	void Update()
+	void Update(float deltaTime)
 	{
+		inputs.mouseDelta = vec2(0.0f);
 		glfwSwapBuffers(window);
+		glfwSwapInterval(1);
 		glfwPollEvents();
+		glfwGetWindowSize(window, &width, &height);
+		if (tTime - lastTitleUpdate > 1.0f)
+		{
+			glfwSetWindowTitle(window, (std::string("Alien game! FPS = ") + std::to_string(frameCount)).c_str());
+			lastTitleUpdate = int(tTime);
+			frameCount = 0;
+		}
+		else frameCount++;
+		perspective = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.01f, 100.0f);
+		inputs.Update(window);
+		if (inputs.f.pressed)
+		{
+			if (fullscreened)
+				glfwRestoreWindow(window);
+			else
+				glfwMaximizeWindow(window);
+			fullscreened = !fullscreened;
+		}
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void End()
@@ -46,14 +87,22 @@ public:
 		glfwTerminate();
 	}
 
-	void processInput(GLFWwindow* window)
-	{
-		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-			glfwSetWindowShouldClose(window, true);
-	}
-
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	{
 		glViewport(0, 0, width, height);
+	}
+
+	static void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+	{
+		if (firstMouse)
+		{
+			inputs.mousePos = { xpos, ypos };
+			firstMouse = false;
+		}
+
+		inputs.mouseDelta.x = xpos - inputs.mousePos.x;
+		inputs.mouseDelta.y = inputs.mousePos.y - ypos;
+		inputs.mousePos.x = xpos;
+		inputs.mousePos.y = ypos;
 	}
 };

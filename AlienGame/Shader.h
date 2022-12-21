@@ -1,4 +1,4 @@
-#include "Include.h"
+#include "Texture.h"
 
 class Shader
 {
@@ -13,9 +13,17 @@ public:
 	{
 		// File opening:
 		char* vertexShaderSource = OpenFile(vertexShaderLocation);
-		std::cout << std::string(vertexShaderSource) << std::endl;
 		char* fragmentShaderSource = OpenFile(fragmentShaderLocation);
-		std::cout << std::string(fragmentShaderSource) << std::endl;
+		if (vertexShaderSource == nullptr)
+		{
+			std::cout << "ERROR::SHADER::VERTEX DOES NOT EXIST\n";
+			return;
+		}
+		if (fragmentShaderSource == nullptr)
+		{
+			std::cout << "ERROR::SHADER::FRAGMENT DOES NOT EXIST\n";
+			return;
+		}
 
 		uint vertexShader;
 		vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -66,5 +74,30 @@ public:
 	void Delete()
 	{
 		glDeleteProgram(program);
+	}
+
+	void SetVec3(vec3 vector3, const char* name)
+	{
+		glUniform3f(glGetUniformLocation(program, name), vector3.x, vector3.y, vector3.z);
+	}
+
+	void SetMat4(glm::mat4 mat, const char* name)
+	{
+		glUniformMatrix4fv(glGetUniformLocation(program, name), 1, GL_FALSE, glm::value_ptr(mat));
+	}
+
+	void SetTex3D(Texture tex, const char* name)
+	{
+		glUniform1i(glGetUniformLocation(program, name), tex.position);
+	}
+
+	void SetInt(int i, const char* name)
+	{
+		glUniform1i(glGetUniformLocation(program, name), i);
+	}
+
+	void SetFloat(float f, const char* name)
+	{
+		glUniform1f(glGetUniformLocation(program, name), f);
 	}
 };

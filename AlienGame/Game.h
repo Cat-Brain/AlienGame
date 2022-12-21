@@ -1,12 +1,13 @@
-#include "Entity.h"
+#include "Player.h"
 
 class Game : public Window
 {
 public:
 	bool isRunning;
 	std::vector<Entity*> entities;
-	Shader shader1, shader2;
-	Mesh* mesh1, *mesh2;
+	Shader defaultShader;
+	Mesh* cube;
+	float lastTime;
 
 	Game()
 	{
@@ -28,51 +29,99 @@ public:
 	{
 		Window::Start();
 		entities = std::vector<Entity*>();
-		shader1 = Shader("DefaultDiffuseVert.txt", "DefaultDiffuseFrag.txt");
-		shader2 = Shader("DefaultDiffuseVert.txt", "DefaultDiffuseFrag2.txt");
-		float vertices1[] = {
-			// first triangle
-			-0.5f, -0.5f, 0.0f,  // bottom left
-			-0.5f,  0.5f, 0.0f,  // top left 
-			 0.5f,  0.5f, 0.0f,  // top right
-			// second triangle
-			-0.5f, -0.5f, 0.0f,  // bottom left
-			 0.5f,  0.5f, 0.0f,  // top right
-			 0.5f, -0.5f, 0.0f  // bottom right
+		defaultShader = Shader("DefaultDiffuseVert.txt", "DefaultDiffuseFrag.txt");
+
+		float cubeVertices[] = {
+			 0.5f,  0.5f, -0.5f, 0.0f, 0.0f,-1.0f, // 2
+			 0.5f, -0.5f, -0.5f, 0.0f, 0.0f,-1.0f, // 1
+			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,-1.0f, // 0
+			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,-1.0f, // 0
+			-0.5f,  0.5f, -0.5f, 0.0f, 0.0f,-1.0f, // 3
+			 0.5f,  0.5f, -0.5f, 0.0f, 0.0f,-1.0f, // 2
+
+			-0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // 4
+			 0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // 5
+			 0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // 6
+			 0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // 6
+			-0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // 7
+			-0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // 4
+
+			-0.5f,  0.5f,  0.5f,-1.0f, 0.0f, 0.0f, // 7
+			-0.5f,  0.5f, -0.5f,-1.0f, 0.0f, 0.0f, // 3
+			-0.5f, -0.5f, -0.5f,-1.0f, 0.0f, 0.0f, // 0
+			-0.5f, -0.5f, -0.5f,-1.0f, 0.0f, 0.0f, // 0
+			-0.5f, -0.5f,  0.5f,-1.0f, 0.0f, 0.0f, // 4
+			-0.5f,  0.5f,  0.5f,-1.0f, 0.0f, 0.0f, // 7
+
+			 0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, // 1
+			 0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f, // 2
+			 0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // 6
+			 0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // 6
+			 0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // 5
+			 0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, // 1
+
+			-0.5f, -0.5f, -0.5f, 0.0f,-1.0f, 0.0f, // 0
+			 0.5f, -0.5f, -0.5f, 0.0f,-1.0f, 0.0f, // 1
+			 0.5f, -0.5f,  0.5f, 0.0f,-1.0f, 0.0f, // 5
+			 0.5f, -0.5f,  0.5f, 0.0f,-1.0f, 0.0f, // 5
+			-0.5f, -0.5f,  0.5f, 0.0f,-1.0f, 0.0f, // 4
+			-0.5f, -0.5f, -0.5f, 0.0f,-1.0f, 0.0f, // 0
+
+			 0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // 6
+			 0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // 2
+			-0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // 3
+			-0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // 3
+			-0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // 7
+			 0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // 6
 		};
-		float vertices2[] = {
-			-1.0f, -1.0f, 0.0f,  // bottom left
-			-1.0f,  0.0f, 0.0f,  // top left 
-			 0.0f,  0.0f, 0.0f,  // top right
-			 0.0f, -1.0f, 0.0f,  // bottom right
-		};
-		uint indices[] = {
-			0, 1, 2,
-			0, 2, 3
-		};
-		mesh1 = new Mesh1(vertices1, sizeof(vertices1));
-		mesh2 = new Mesh2(vertices2, sizeof(vertices2), indices, sizeof(indices));
-		entities.push_back(new Entity(&shader1, mesh1));
-		entities.push_back(new Entity(&shader2, mesh2));
+
+		cube = new Mesh1(cubeVertices, sizeof(cubeVertices));
+		entities.push_back(new Player(3.0f, 0.025f));
+
+		int width = 16, height = 16, depth = 16;
+		unsigned char* data = new unsigned char[16384];
+		uint index = 0;
+		for (int x = 0; x < width; x++)
+			for (int y = 0; y < height; y++)
+				for (int z = 0; z < depth; z++)
+				{
+					data[index] = rand() % 256;
+					index++;
+					data[index] = rand() % 256;
+					index++;
+					data[index] = rand() % 256;
+					index++;
+					data[index] = rand() % 2 * 255;
+					index++;
+				}
+
+		entities.push_back(new Chunk(data, &defaultShader, cube, { 0.0f, 0.0f, -32.0f }, glm::vec3(0), 16.0f));
+		
+		lastTime = glfwGetTime();
 	}
 	
 	void Update()
 	{
+		float deltaTime = glfwGetTime() - lastTime;
+		tTime += deltaTime;
+		lastTime = glfwGetTime();
 		ProcessInput();
 
-		Window::Update();
+		Window::Update(deltaTime);
 		for (Entity* entity : entities)
-			entity->Update(this);
+			entity->Update(this, deltaTime);
+
+		for (Entity* entity : entities)
+			entity->DUpdate(this, deltaTime);
 
 		isRunning &= !glfwWindowShouldClose(window);
+
 	}
 
 	void End()
 	{
-		shader1.Delete();
-		shader2.Delete();
-		mesh1->End();
-		mesh2->End();
+		defaultShader.Delete();
+		cube->End();
 		Window::End();
 	}
 	
