@@ -18,9 +18,6 @@ vec4 Opacity(vec4 a, vec4 b)
 void main()
 {
     vec3 moveDir = normalize(fragPos - playerPos);
-    float dX = sqrt(1.0 + (moveDir.y * moveDir.y + moveDir.z * moveDir.z) / (moveDir.x * moveDir.x));
-    float dY = sqrt(1.0 + (moveDir.x * moveDir.x + moveDir.z * moveDir.z) / (moveDir.y * moveDir.y));
-    float dZ = sqrt(1.0 + (moveDir.x * moveDir.x + moveDir.y * moveDir.y) / (moveDir.z * moveDir.z));
 
     vec3 currentPos = /*1 - */boundingPos * scale;
     vec3 rPlayerPos = (playerPos - pos) / scale + 0.5;
@@ -28,13 +25,41 @@ void main()
         rPlayerPos.y > 0.0 && rPlayerPos.y < 1.0 &&
         rPlayerPos.z > 0.0 && rPlayerPos.z < 1.0)
         currentPos = rPlayerPos * scale;
-    vec3 currentVoxelPos = currentPos + normal * 0.5;
-    vec4 color = texture3D(voxels, currentVoxelPos / scale);
-    for(int i = 0; i < 100; i++)
+    vec3 currentVoxelPos = floor(currentPos + normal * 0.5);
+    
+    float dX = 1.0 / max(0.0001, abs(moveDir.x));
+    float dY = 1.0 / max(0.0001, abs(moveDir.y));
+    float dZ = 1.0 / max(0.0001, abs(moveDir.z));
+/*
+    vec2 step;
+    vec2 sideDist;
+    
+    if (moveDir.x < 0)
     {
-        float cDX = (floor(currentPos.x) + 1 - currentPos.x) * dX;
-        float cDY = (floor(currentPos.y) + 1 - currentPos.y) * dY;
-        float cDZ = (floor(currentPos.z) + 1 - currentPos.z) * dZ;
+        step.x = -1;
+        sideDist.x = (posX - mapX) * deltaDistX;
+    }
+    else
+    {
+        step.x = 1;
+        sideDist.x = (mapX + 1.0 - posX) * deltaDistX;
+    }
+    if (moveDir.y < 0)
+    {
+        step.y = -1;
+        sideDist.y = (currentPos.y - mapY) * deltaDistY;
+    }
+    else
+    {
+        step.y = 1;
+        sideDist.y = (currentPos.y + 1.0 - posY) * deltaDistY;
+    }*/
+    vec4 color = texture3D(voxels, currentVoxelPos / scale);
+    for(int i = 0; i < 1; i++)
+    {
+        float cDX = (floor(currentPos.x) - currentPos.x) * dX;
+        float cDY = (floor(currentPos.y) - currentPos.y) * dY;
+        float cDZ = (floor(currentPos.z) - currentPos.z) * dZ;
 
         if(cDX > cDY)
         {
@@ -67,7 +92,7 @@ void main()
             currentVoxelPos.y > scale || currentVoxelPos.y < 0 ||
             currentVoxelPos.z > scale || currentVoxelPos.z < 0)
             break;
-        vec4 newColor = Opacity(color, texture3D(voxels, currentVoxelPos / scale));
+        vec4 newColor = texture3D(voxels, currentVoxelPos / scale);
         if(newColor.a > 0.5)
         {
             color = newColor;
@@ -80,5 +105,5 @@ void main()
     else
         discard;
     //FragColor = Opacity(color, vec4(0.0, 0.0, 0.0, 1.0));
-    //FragColor = vec4(vec3(1 / (length(currentPos - boundingPos * scale) + 1)), 1.0);
+    FragColor = vec4(vec3(1 / (length(currentPos - boundingPos * scale) + 1)), 1.0);
 }
