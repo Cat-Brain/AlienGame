@@ -15,27 +15,36 @@ public:
 	int width = 600, height = 600;
 	vec3 playerPos = vec3(0);
 
-	void Start()
+	bool Start()
 	{
+		std::cout << "0.1\n";
 		firstMouse = true;
-		glfwInit();
+		if (glfwInit() == GL_FALSE)
+		{
+			std::cout << "Failed to initialize GLFW\n";
+			return false;
+		}
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+		std::cout << "0.2\n";
 
-		window = glfwCreateWindow(width, width, "Alien game!", NULL, NULL);
+		window = glfwCreateWindow(width, height, "Alien game!", NULL, NULL);
+		std::cout << "0.3\n";
 		if (window == NULL)
 		{
-			std::cout << "Failed to create GLFW window" << std::endl;
+			std::cout << "Failed to create GLFW window\n";
 			glfwTerminate();
+			return false;
 		}
+
 		glfwMakeContextCurrent(window);
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
-			std::cout << "Failed to initialize GLAD" << std::endl;
-			return;
+			std::cout << "Failed to initialize GLAD\n";
+			return false;
 		}
 
 		glViewport(0, 0, width, width);
@@ -51,6 +60,7 @@ public:
 
 		perspective = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.01f, 100.0f);
 		view = glm::translate(glm::mat4(1), -playerPos);
+		return true;
 	}
 
 	void Update(float deltaTime)

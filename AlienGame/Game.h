@@ -16,7 +16,7 @@ public:
 
 	void Run()
 	{
-		Start();
+		if(!Start()) return;
 
 		isRunning = true;
 		while (isRunning)
@@ -25,11 +25,14 @@ public:
 		End();
 	}
 
-	void Start()
+	bool Start()
 	{
-		Window::Start();
+		std::cout << "0\n";
+		if(!Window::Start()) return false;
 		entities = std::vector<Entity*>();
+		std::cout << "1\n";
 		defaultShader = Shader("DefaultDiffuseVert.txt", "DefaultDiffuseFrag.txt");
+		std::cout << "2\n";
 
 		float cubeVertices[] = {
 			 0.5f,  0.5f, -0.5f, 0.0f, 0.0f,-1.0f, // 2
@@ -76,7 +79,7 @@ public:
 		};
 
 		cube = new Mesh1(cubeVertices, sizeof(cubeVertices));
-		entities.push_back(new Player(3.0f, 0.025f));
+		entities.push_back(new Player(3.0f, 0.1f));
 
 		int width = 16, height = 16, depth = 16;
 		unsigned char* data = new unsigned char[16384];
@@ -96,8 +99,12 @@ public:
 				}
 
 		entities.push_back(new Chunk(data, &defaultShader, cube, { 0.0f, 0.0f, -32.0f }, glm::vec3(0), 16.0f));
+
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
 		
 		lastTime = glfwGetTime();
+		return true;
 	}
 	
 	void Update()
@@ -114,7 +121,7 @@ public:
 		for (Entity* entity : entities)
 			entity->DUpdate(this, deltaTime);
 
-		isRunning &= !glfwWindowShouldClose(window);
+		isRunning &= ~glfwWindowShouldClose(window);
 
 	}
 
